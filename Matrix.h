@@ -23,5 +23,5 @@ class Matrix {
   // Size of the storage field.
   size_t _rowNum;
   size_t _colNum;
-  std::vector<std::vector<double> > _storage;
+  std::vector<std::vector<double> > *_storage;
 };
