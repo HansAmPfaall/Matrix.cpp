@@ -1,4 +1,6 @@
 #pragma once
+#include <cassert>
+#include <cmath>
 #include <iostream>
 #include <vector>
 
@@ -17,12 +19,12 @@ class Matrix {
 
   // ___________________________________________________________________________
   // Constructor.
-  Matrix(size_t rows, size_t cols, double value) {
+  Matrix(size_t rows, size_t cols, float value) {
     _rowNum = rows;
     _colNum = cols;
     _storage.resize(rows * cols);
     for (size_t i = 0; i < rows * cols; i++) {
-      _storage[i] = 0;
+      _storage[i] = value;
     }
   }
 
@@ -45,16 +47,13 @@ class Matrix {
   // ___________________________________________________________________________
   // Matrixmultiplication, return the product.
   Matrix mult(Matrix m) {
+    assert(_colNum == m._rowNum);
     Matrix temp(_rowNum, m._colNum, 0);
-    if (_rowNum != m._colNum) {
-      return temp;
-    }
     for (size_t i = 0; i < _rowNum; i++) {
       for (size_t k = 0; k < m._colNum; k++) {
         for (size_t j = 0; j < _colNum; j++) {
-          temp.setValue(i, k,
-                        temp.getValue(i, k) +
-                            _storage[i * _colNum + j] * m.getValue(j, k));
+          temp._storage[i * temp._colNum + k] +=
+              _storage[i * _colNum + j] * m._storage[j * m._colNum + k];
         }
       }
     }
@@ -63,41 +62,26 @@ class Matrix {
 
   // ___________________________________________________________________________
   Matrix operator*(Matrix m) {
-    Matrix temp(_rowNum, m._colNum, 0);
-    if (_rowNum != m._colNum) {
-      return temp;
-    }
-    for (size_t i = 0; i < _rowNum; i++) {
-      for (size_t k = 0; k < m._colNum; k++) {
-        for (size_t j = 0; j < _colNum; j++) {
-          temp.setValue(i, k,
-                        temp.getValue(i, k) +
-                            _storage[i * _colNum + j] * m.getValue(j, k));
-        }
-      }
-    }
-    return temp;
+    // TODO: implement this function.
   }
 
   // ___________________________________________________________________________
   // A Setter Function.
-  void setValue(int row, int col, double value) {
-    if (row < _rowNum && col < _colNum) {
-      _storage[_colNum * row + col] = value;
-    }
+  void setValue(int row, int col, float value) {
+    assert(row < _rowNum && col < _colNum);
+    _storage[_colNum * row + col] = value;
   }
 
   // ___________________________________________________________________________
   // A Getter Function.
-  double getValue(int row, int col) {
-    if (row < _rowNum && col < _colNum) {
-      return _storage[_colNum * row + col];
-    }
+  float getValue(int row, int col) {
+    assert(row < _rowNum && col < _colNum);
+    return _storage[_colNum * row + col];
   }
 
   // ___________________________________________________________________________
   // Add a Value to every entry in the Matrix.
-  void add(double x) {
+  void add(float x) {
     for (size_t i = 0; i < _rowNum * _colNum; i++) {
       _storage[i] += x;
     }
@@ -106,15 +90,14 @@ class Matrix {
   // ___________________________________________________________________________
   // Add one Matrix to another.
   void add(Matrix m) {
-    if (_rowNum == m._rowNum and _colNum == m._colNum) {
-      for (size_t i = 0; i < _rowNum * _colNum; i++) {
-        _storage[i] += m.getValue(i / _colNum, i % _colNum);
-      }
+    assert(_rowNum == m._rowNum and _colNum == m._colNum);
+    for (size_t i = 0; i < _rowNum * _colNum; i++) {
+      _storage[i] += m._storage[i];
     }
   }
 
   // ___________________________________________________________________________
-  void operator+(double value) {
+  void operator+(float value) {
     for (size_t i = 0; i < _rowNum * _colNum; i++) {
       _storage[i] += value;
     }
@@ -130,14 +113,27 @@ class Matrix {
     return temp;
   }
 
+  // ___________________________________________________________________________
+  // Applies the sigmoid function.
+  void sigmoid() {
+    for (size_t i = 0; i < _rowNum * _colNum; i++) {
+      _storage[i] = 1 / (1 + exp(-_storage[i]));
+    }
+  }
+
+  // ___________________________________________________________________________
+  // Applies the Derivative of the sigmoid function.
+  void d_sigmoid() {
+    for (size_t i = 0; i < _rowNum * _colNum; i++) {
+      _storage[i] = pow(exp(-_storage[i]) / (1 + exp(-_storage[i])), 2);
+    }
+  }
+
   // The Rows of the Matrix.
   size_t _rowNum;
 
   // The Collums of the Matrix.
   size_t _colNum;
-
- private:
   // The Entries of the Matrix.
-  std::vector<double> _storage;
-  // std::vector<std::vector<double> > _storage;
+  std::vector<float> _storage;
 };
